@@ -4,3 +4,4 @@ Git has a mutable index called state.
 Git tracks changes of files.
 hello
 world
+hi
