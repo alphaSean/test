@@ -18,12 +18,12 @@ int main()
     if (pipe(fd) < 0)
     {
         printf("pipe error!\n");
-        exit(-1);
+        return -1;
     }
     if ((pid = fork()) < 0)
     {
         printf("fork error!\n");
-        exit(-2);
+        return -2;
     }
     else if (pid > 0)
     {
@@ -35,7 +35,6 @@ int main()
         close(fd[1]);
         n = read(fd[0], line, MAX_LINE);
         write(STDOUT_FILENO, line, n);
-        exit(0);
     }
     
     return 0;
