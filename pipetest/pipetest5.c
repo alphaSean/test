@@ -2,9 +2,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <signal.h>
+
+#include "my_func.h"
+
 
 #define MAX_BUF_SIZE 256
 #define PAGER "${PAGER:-less}"
+
+void childsig_func(int sig)
+{
+    printf("in child sig handle func");
+}
+
 
 int main(int argc, char** argv)
 {
@@ -17,6 +27,13 @@ int main(int argc, char** argv)
     if (argc < 2)
     {
         printf("not enough params!\n");
+        return -1;
+    }
+
+    if (my_signal(SIGCHLD, childsig_func) == SIG_ERR)
+    {
+        perror("signal SIGCHLD failed!\n");
+        return -1;
     }
 
     if (!(pIn = fopen(argv[1], "r")))
@@ -25,9 +42,9 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    if (!(pOut = popen(PAGER, "w")))
+    if (!(pOut = my_popen(PAGER, "w")))
     {
-        printf("popen %s failed!", PAGER);
+        printf("my_popen %s failed!", PAGER);
         return -1;
     }
     
@@ -36,9 +53,9 @@ int main(int argc, char** argv)
         fputs(szBuf, pOut);
     }
 
-    if (pclose(pOut) == -1)
+    if (my_pclose(pOut) == -1)
     {
-        printf("pclose failed!\n");
+        printf("my_pclose failed!\n");
     }
 
     return 0;

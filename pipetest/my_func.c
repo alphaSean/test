@@ -1,8 +1,6 @@
 #include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
-#include <sys/wait.h>
+#include "my_func.h"
+
 
 #ifdef OPEN_MAX
 static int openmax = OPEN_MAX;
@@ -140,6 +138,60 @@ int my_pclose(FILE *fp)
         printf("wait pid failed!\n");
         return -1;
     }
+    else
+    {
+        pr_exit(status);
+    }
     
     return 0;
+}
+
+Sigfunc my_signal(int signo, Sigfunc func)
+{
+    struct sigaction act, oact;
+    act.sa_handler = func;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    if (signo == SIGALRM)
+    {
+#ifdef SA_INTERRUPT
+        act.sa_flags |= SA_INTERRUPT;
+#endif
+    }
+    else
+    {
+#ifdef SA_RESTART
+        act.sa_flags |= SA_RESTART;
+#endif
+    }
+
+    if (sigaction(signo, &act, &oact) < 0)
+    {
+        return SIG_ERR;
+    }
+    return oact.sa_handler;
+}
+
+void pr_exit(int status)
+{
+    if (WIFEXITED(status))
+    {
+        printf("nomal terminaltion, exit status = %d\n", 
+                WEXITSTATUS(status));
+    }
+    else if(WIFSIGNALED(status))
+    {
+        printf("abnormal termination, signal number = %d%s\n",
+                WTERMSIG(status),
+#ifdef WCOREDUMP
+                WCOREDUMP(status) ? " (core file generated)" : "");
+#else
+            "");
+#endif
+    }
+    else if(WIFSTOPPED(status))
+    {
+        printf("child stopped, signal number = %d\n", 
+                WSTOPSIG(status));
+    }
 }
